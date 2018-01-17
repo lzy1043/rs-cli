@@ -1,0 +1,70 @@
+#!/usr/bin/env node
+
+const download = require('download')
+const fs = require('fs')
+const program = require('commander')
+const ora = require('ora')
+const exists = require('fs').existsSync
+const rm = require('rimraf').sync
+const inquirer = require('inquirer')
+const chalk = require('chalk');
+
+program.usage('<project-name>')
+program.parse(process.argv)
+
+const url = 'http://192.168.10.92/liuziyang/vue-multiple/repository/archive.zip?ref=master';
+const dest = program.args[0];
+const options = { 
+  extract: true,
+  strip: 1,
+  mode: '666',
+  headers: { accept: 'application/zip' }
+}
+
+if (exists(dest)) {
+  inquirer.prompt([{
+    type: 'confirm',
+    message: 'Target directory exists. Continue?',
+    name: 'ok'
+  }])
+  .then(answers => {
+    if (answers.ok) {
+      downloadTemplate();
+    }
+  })
+  .catch(() => {
+    console.log('abort')
+  })
+} else {
+  downloadTemplate();
+}
+
+function downloadTemplate () {
+  const spinner = ora('downloading template');
+  spinner.start();
+  if (exists(dest)) rm(dest);
+  download(url, dest, options)
+  .then(() => {
+    generate(dest);
+    spinner.stop();
+    console.log()
+    console.log(chalk.white('   rs-cli'), chalk.gray('·'), `Generated ${dest}.`)
+    console.log()
+    console.log(chalk.white('#'), chalk.green('Project initialization finished!'))
+    console.log('# =========================')
+    console.log()
+    console.log('# To get start:');
+    console.log()
+    console.log(chalk.yellow(`  cd ${dest}`))
+    console.log(chalk.yellow('  npm install'))
+    console.log(chalk.yellow('  npm run dev'))
+  })
+  .catch(err => {
+    console.error(chalk.red(err))
+  })
+}
+
+function generate (name) {
+  let content = fs.readFileSync(`${name}/package.json`, 'utf-8').replace('vue-multiple-template', name);
+  fs.writeFileSync(`${name}/package.json`, content);
+}
