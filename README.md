@@ -8,14 +8,23 @@ A simple CLI for multiple pages Vue.js projects.
 
 ### 使用
 
+目前没有发布到npm，需要手动link
+
 ``` bash
-$ vue init <project-name>
+
+$ git clone http://192.168.10.92/liuziyang/rs-cli
+
+$ npm install
+
+$ npm link
+
+$ rs-cli init <project-name>
 ```
 
 Example:
 
 ``` bash
-$ vue init my-project
+$ rs-cli init my-project
 ```
 
 ### License
