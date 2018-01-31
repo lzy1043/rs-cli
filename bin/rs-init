@@ -13,7 +13,7 @@ program.usage('<project-name>')
 program.parse(process.argv)
 
 const url = 'http://192.168.10.92/liuziyang/vue-multiple/repository/archive.zip?ref=master';
-const dest = program.args[0];
+let dest = program.args[0];
 const options = { 
   extract: true,
   strip: 1,
@@ -21,23 +21,42 @@ const options = {
   headers: { accept: 'application/zip' }
 }
 
-if (exists(dest)) {
+if (!dest) {
   inquirer.prompt([{
-    type: 'confirm',
-    message: 'Target directory exists. Continue?',
-    name: 'ok'
-  }])
-  .then(answers => {
-    if (answers.ok) {
-      downloadTemplate();
-    }
-  })
-  .catch(() => {
-    console.log('abort')
+    type: 'input',
+    message: 'Please entry name of project',
+    name: 'name'
+  }]).then(answers => {
+    dest = answers.name
+    checkFolderAndGenerate();
+  }).catch (err => {
+    console.log(err)
   })
 } else {
-  downloadTemplate();
+  checkFolderAndGenerate();
 }
+
+function checkFolderAndGenerate () {
+if (exists(dest)) {
+    inquirer.prompt([{
+      type: 'confirm',
+      message: 'Target directory exists. Continue?',
+      name: 'ok'
+    }])
+    .then(answers => {
+      if (answers.ok) {
+        downloadTemplate();
+      }
+    })
+    .catch(() => {
+      console.log('abort')
+    })
+  } else {
+    downloadTemplate();
+  }
+}
+
+
 
 function downloadTemplate () {
   const spinner = ora('downloading template');
@@ -66,5 +85,7 @@ function downloadTemplate () {
 
 function generate (name) {
   let content = fs.readFileSync(`${name}/package.json`, 'utf-8').replace('vue-multiple-template', name);
+  let template = fs.readFileSync(`${name}/index.html`, 'utf-8').replace('vue-multiple-template', name);
   fs.writeFileSync(`${name}/package.json`, content);
+  fs.writeFileSync(`${name}/index.html`, template)
 }
